@@ -1,0 +1,6 @@
+@ferramentasAPI_HostAddress = http://localhost:5288
+
+GET {{ferramentasAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
