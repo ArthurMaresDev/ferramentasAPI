@@ -67,16 +67,30 @@ public static class FuncionarioEndpoints
 
         app.MapDelete("/funcionarios/{id}", async (int id, AppDbContext db) =>
         {
-            var funcionario = await db.Funcionarios.FindAsync(id);
+            var funcionario = await db.Funcionarios
+                .Include(f => f.Ferramentas)
+                .FirstOrDefaultAsync(f => f.Id == id);
 
             if (funcionario is null)
                 return Results.NotFound();
-            db.Funcionarios.Remove(funcionario);
 
+            if (funcionario.Ferramentas.Any())
+            {
+                return Results.Conflict(new
+                {
+                    mensagem = "Este funcionário possui ferramentas emprestadas.",
+                    ferramentas = funcionario.Ferramentas.Select(f => new
+                    {
+                        f.Id,
+                        f.Nome
+                    })
+                });
+            }
+
+            db.Funcionarios.Remove(funcionario);
             await db.SaveChangesAsync();
 
-            return Results.Ok("Funcionario excluido com sucesso!");
-
+            return Results.Ok("Funcionário excluído com sucesso!");
         });
     }
 }
