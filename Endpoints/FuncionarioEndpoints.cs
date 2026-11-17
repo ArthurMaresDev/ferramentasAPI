@@ -43,11 +43,26 @@ public static class FuncionarioEndpoints
 
         app.MapGet("/funcionarios/{id}", async (int id, AppDbContext db) =>
         {
-            var funcionario = await db.Funcionarios.FindAsync(id);
+            var funcionario = await db.Funcionarios
+                .Include(f => f.Ferramentas)
+                .FirstOrDefaultAsync(f => f.Id == id);
 
-            return funcionario is not null
-                ? Results.Ok(funcionario)
-                : Results.NotFound();
+            if (funcionario is null)
+                return Results.NotFound();
+
+            return Results.Ok(new
+            {
+                funcionario.Id,
+                funcionario.Nome,
+                funcionario.Cargo,
+                Ferramentas = funcionario.Ferramentas.Select(f => new
+                {
+                    f.Id,
+                    f.Nome,
+                    f.Descricao,
+                    f.Disponivel
+                })
+            });
         });
 
         app.MapPut("/funcionarios/{id}", async (int id, Funcionario dadosAtualizados, AppDbContext db) =>
