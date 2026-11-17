@@ -106,6 +106,10 @@ public static class FerramentaEndpoints
             if (funcionario is null)
                 return Results.NotFound("Funcionário não encontrado.");
 
+            if (!ferramenta.Disponivel)
+                return Results.Conflict("Esta ferramenta já está emprestada.");
+
+
             ferramenta.FuncionarioId = request.FuncionarioId;
 
             ferramenta.Disponivel = false;
