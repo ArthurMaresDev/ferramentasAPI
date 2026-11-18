@@ -36,7 +36,11 @@ public static class FerramentaEndpoints
                 .FirstOrDefaultAsync(f => f.Id == id);
 
             if (ferramenta is null)
-                return Results.NotFound();
+                return Results.Problem(
+                    title: "Ferramenta não encontrada",
+                    detail: $"Não existe ferramenta com o ID {id}.",
+                    statusCode: StatusCodes.Status404NotFound
+                );
 
             return Results.Ok(new
             {
@@ -62,7 +66,11 @@ public static class FerramentaEndpoints
             var ferramenta = await db.Ferramentas.FindAsync(id);
 
             if (ferramenta is null)
-                return Results.NotFound();
+                return Results.Problem(
+                    title: "Ferramenta não encontrada",
+                    detail: $"Não existe ferramenta com o ID {id}.",
+                    statusCode: StatusCodes.Status404NotFound
+                );
 
             ferramenta.Nome = dadosAtualizados.Nome;
             ferramenta.Descricao = dadosAtualizados.Descricao;
@@ -80,7 +88,12 @@ public static class FerramentaEndpoints
             var ferramenta = await db.Ferramentas.FindAsync(id);
 
             if (ferramenta is null)
-                return Results.NotFound();
+                return Results.Problem(
+                    title: "Ferramenta não encontrada",
+                    detail: $"Não existe ferramenta com o ID {id}.",
+                    statusCode: StatusCodes.Status404NotFound
+                );
+
             db.Ferramentas.Remove(ferramenta);
 
             await db.SaveChangesAsync();
@@ -99,15 +112,27 @@ public static class FerramentaEndpoints
             var ferramenta = await db.Ferramentas.FindAsync(id);
 
             if (ferramenta is null)
-                return Results.NotFound("Ferramenta não encontrada.");
+                return Results.Problem(
+                    title: "Ferramenta não encontrada",
+                    detail: $"Não existe ferramenta com o ID {id}.",
+                    statusCode: StatusCodes.Status404NotFound
+                );
 
             var funcionario = await db.Funcionarios.FindAsync(request.FuncionarioId);
 
             if (funcionario is null)
-                return Results.NotFound("Funcionário não encontrado.");
+                return Results.Problem(
+                    title: "Funcionário não encontrado",
+                    detail: $"Não existe funcionário com o ID {request.FuncionarioId}.",
+                    statusCode: StatusCodes.Status404NotFound
+                );
 
             if (!ferramenta.Disponivel)
-                return Results.Conflict("Esta ferramenta já está emprestada.");
+                return Results.Problem(
+                     title: "Conflito na operação",
+                     detail: "Esta ferramenta já está emprestada.",
+                     statusCode: StatusCodes.Status409Conflict
+                 );
 
 
             ferramenta.FuncionarioId = request.FuncionarioId;
@@ -126,10 +151,18 @@ public static class FerramentaEndpoints
             var ferramenta = await db.Ferramentas.FindAsync(id);
 
             if (ferramenta is null)
-                return Results.NotFound("Ferramenta não encontrada.");
+                return Results.Problem(
+                    title: "Ferramenta não encontrada",
+                    detail: $"Não existe ferramenta com o ID {id}.",
+                    statusCode: StatusCodes.Status404NotFound
+                );
 
             if (ferramenta.FuncionarioId is null)
-                return Results.BadRequest("Esta ferramenta não está emprestada.");
+                return Results.Problem(
+                     title: "Operação inválida",
+                     detail: "Esta ferramenta não está emprestada.",
+                     statusCode: StatusCodes.Status400BadRequest
+                 );
 
             ferramenta.FuncionarioId = null;
 

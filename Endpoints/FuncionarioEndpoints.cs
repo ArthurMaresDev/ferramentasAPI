@@ -48,7 +48,11 @@ public static class FuncionarioEndpoints
                 .FirstOrDefaultAsync(f => f.Id == id);
 
             if (funcionario is null)
-                return Results.NotFound();
+                return Results.Problem(
+                    title: "Funcionário não encontrado",
+                    detail: $"Não existe funcionário com o ID {id}.",
+                    statusCode: StatusCodes.Status404NotFound
+                     );
 
             return Results.Ok(new
             {
@@ -70,7 +74,11 @@ public static class FuncionarioEndpoints
             var funcionario = await db.Funcionarios.FindAsync(id);
 
             if (funcionario is null)
-                return Results.NotFound();
+                return Results.Problem(
+                    title: "Funcionário não encontrado",
+                    detail: $"Não existe funcionário com o ID {id}.",
+                    statusCode: StatusCodes.Status404NotFound
+                );
 
             funcionario.Nome = dadosAtualizados.Nome;
             funcionario.Cargo = dadosAtualizados.Cargo;
@@ -86,20 +94,30 @@ public static class FuncionarioEndpoints
                 .Include(f => f.Ferramentas)
                 .FirstOrDefaultAsync(f => f.Id == id);
 
-            if (funcionario is null)
-                return Results.NotFound();
+             if (funcionario is null)
+              {
+                    return Results.Problem(
+                        title: "Funcionário não encontrado",
+                        detail: $"Não existe funcionário com o ID {id}.",
+                        statusCode: StatusCodes.Status404NotFound
+                    );
+             }
 
             if (funcionario.Ferramentas.Any())
             {
-                return Results.Conflict(new
+                return Results.Problem(
+                     title: "Conflito na operação",
+                     detail: "Este funcionário possui ferramentas vinculadas.",
+                     statusCode: StatusCodes.Status409Conflict,
+                     extensions: new Dictionary<string, object?>
                 {
-                    mensagem = "Este funcionário possui ferramentas emprestadas.",
-                    ferramentas = funcionario.Ferramentas.Select(f => new
-                    {
-                        f.Id,
-                        f.Nome
+                    ["ferramentas"] = funcionario.Ferramentas.Select(f => new
+                {
+                     f.Id,
+                     f.Nome
                     })
-                });
+                }
+                );
             }
 
             db.Funcionarios.Remove(funcionario);
